@@ -2,6 +2,12 @@ import CoordinatesConverter from './coordinates-converter.js';
 import style from './style.js';
 import {
     mode,
+	powerMode,
+	pmSoft,
+	pmSilent,
+	pmBalanced,
+	pmTurbo,
+	pmMax,
     goToTarget,
     zonedCleanup,
     zones,
@@ -15,6 +21,8 @@ const LitElement = Object.getPrototypeOf(
     customElements.get("ha-panel-lovelace")
 );
 const html = LitElement.prototype.html;
+
+var powerModeDropdownSetup = true;
 
 class XiaomiVacuumMapCard extends LitElement {
     constructor() {
@@ -35,6 +43,8 @@ class XiaomiVacuumMapCard extends LitElement {
         return {
             _hass: {},
             _config: {},
+            stateObj: {},
+            rooms: {},
             isMouseDown: {},
             rectangles: {},
             selectedRectangle: {},
@@ -52,6 +62,26 @@ class XiaomiVacuumMapCard extends LitElement {
         if (this._config && !this.map_image) {
             this.updateCameraImage();
         }
+
+		if (hass && this._config) {
+			this.stateObj = this._config.entity in hass.states ? hass.states[this._config.entity] : null;
+			
+			if ( this._config.use_rooms_entities && ! this.rooms )
+			{
+				this.rooms = [];
+				for (const ent of this._config.rooms_entities) {
+					this.rooms[ent] = hass.states[ent];
+					let zoneRooms = [];
+					for (const zoneString of this.rooms[ent].attributes["zones"] ) {
+						zoneRooms.push( zoneString[0].split(" ") );
+					}
+					this._config.zones.push( zoneRooms );
+					this._config.zone_names.push( [ this.rooms[ent].attributes["friendly_name"], parseInt(this.rooms[ent].state) ] );
+				}
+
+			}
+
+		}
     }
 
     setConfig(config) {
@@ -60,6 +90,15 @@ class XiaomiVacuumMapCard extends LitElement {
         availableModes.set("go_to_target", texts[this._language][goToTarget]);
         availableModes.set("zoned_cleanup", texts[this._language][zonedCleanup]);
         availableModes.set("predefined_zones", texts[this._language][zones]);
+
+        this.availablePowerModes = new Map();
+        this._language = config.language || "en";
+        this.availablePowerModes.set(105, texts[this._language][pmSoft]);
+        this.availablePowerModes.set(101, texts[this._language][pmSilent]);
+        this.availablePowerModes.set(102, texts[this._language][pmBalanced]);
+        this.availablePowerModes.set(103, texts[this._language][pmTurbo]);
+        this.availablePowerModes.set(104, texts[this._language][pmMax]);
+
 
         if (!config.entity) {
             throw new Error("Missing configuration: entity");
@@ -124,10 +163,18 @@ class XiaomiVacuumMapCard extends LitElement {
                 texts[this._language][zones]
             ];
         }
+
+        this.powerModes = [];
+		for (const mode of this.availablePowerModes) {
+			this.powerModes.push(mode[1]);
+		}
+
+/*
         if (!config.zones || !Array.isArray(config.zones) || config.zones.length === 0 && this.modes.includes(texts[this._language][zones])) {
             this.modes.splice(this.modes.indexOf(texts[this._language][zones]), 1);
         }
-        if (config.default_mode) {
+*/
+		if (config.default_mode) {
             if (!availableModes.has(config.default_mode) || !this.modes.includes(availableModes.get(config.default_mode))) {
                 throw new Error("Invalid default mode: " + config.default_mode);
             }
@@ -135,6 +182,7 @@ class XiaomiVacuumMapCard extends LitElement {
         } else {
             this.defaultMode = -1;
         }
+
         if (config.service && config.service.split(".").length === 2) {
             this.service_domain = config.service.split(".")[0];
             this.service_method = config.service.split(".")[1];
@@ -146,7 +194,13 @@ class XiaomiVacuumMapCard extends LitElement {
             this.map_image = config.map_image;
         }
         this._map_refresh_interval = (config.camera_refresh_interval || 5) * 1000;
-        this._config = config;
+        this._config = Object.assign({}, config);
+
+		if ( config.use_rooms_entities )
+		{
+			this._config.zones = [];
+			this._config.zone_names = [];
+		}
     }
 
     getConfigurationMigration(config) {
@@ -212,6 +266,12 @@ class XiaomiVacuumMapCard extends LitElement {
             return this.getConfigurationMigration(this._config);
         }
         const modesDropdown = this.modes.map(m => html`<paper-item>${m}</paper-item>`);
+        const powerModesDropdown = this.powerModes.map(m => html`<paper-item>${m}</paper-item>`);
+		const currPowerCode = this.stateObj.attributes['fan_speed'];
+		const currPowerName = this.availablePowerModes.get(currPowerCode);
+		const currPowerMode = this.powerModes.indexOf(currPowerName);
+//		alert(currPowerMode);
+
         const rendered = html`
         ${style}
         <ha-card id="xiaomiCard">
@@ -233,6 +293,12 @@ class XiaomiVacuumMapCard extends LitElement {
                         ${modesDropdown}
                     </paper-listbox>
                 </paper-dropdown-menu>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                <paper-dropdown-menu label="${texts[this._language][powerMode]}" @value-changed="${e => this.powerModeSelected(e)}" class="vacuumDropdown" selected="${currPowerMode}">
+                    <paper-listbox slot="dropdown-content" class="dropdown-content" selected="${currPowerMode}">
+                        ${powerModesDropdown}
+                    </paper-listbox>
+                </paper-dropdown-menu>
             </div>
             <p class="buttonsWrapper">
                 <span id="increaseButton" hidden><mwc-button @click="${() => this.vacuumZonedIncreaseButton()}">${texts[this._language][repeats]} ${this.vacuumZonedCleanupRepeats}</mwc-button></span>
@@ -244,6 +310,7 @@ class XiaomiVacuumMapCard extends LitElement {
         if (this.getMapImage()) {
             this.calculateScale();
         }
+
         return rendered;
     }
 
@@ -369,9 +436,50 @@ class XiaomiVacuumMapCard extends LitElement {
         } else if (selected === texts[this._language][zones]) {
             this.mode = 3;
         }
-        this.getPredefinedZonesIncreaseButton().hidden = this.mode !== 3 && this.mode !== 2;
+        this.getPredefinedZonesIncreaseButton().hidden = this.mode !== 2;
         this.drawCanvas();
     }
+
+    powerModeSelected(e) {
+        const selected = e.detail.value;
+        this.powerMode = -1;
+        if (selected === texts[this._language][pmSoft]) {
+            this.powerMode = 105;
+        } else if (selected === texts[this._language][pmSilent]) {
+            this.powerMode = 101;
+        } else if (selected === texts[this._language][pmBalanced]) {
+            this.powerMode = 102;
+        } else if (selected === texts[this._language][pmTurbo]) {
+            this.powerMode = 103;
+        } else if (selected === texts[this._language][pmMax]) {
+            this.powerMode = 104;
+        }
+		// quando viene fatto il setup della dropdown, arriva un evento ma non va inviato
+		// quando viene fatta una selezione, prima arriva un evento con "selected" vuoto, poi con "selected" valorizzato, che e' l'evento che va gestito
+		if (selected == "" || powerModeDropdownSetup)
+		{
+			powerModeDropdownSetup = false;
+			return;
+		}
+
+	if (this._config.debug) {
+            alert("Setting power mode " + selected + " (" + this.powerMode + ")" );
+        } else {
+			/*
+            this._hass.callService(this.service_domain, this.service_method, {
+                entity_id: this._config.entity,
+                command: "app_zoned_clean",
+                params: zone
+            }).then(() => this.showToast());
+			*/
+            this._hass.callService(this.service_domain, this.service_method, {
+                entity_id: this._config.entity,
+                command: "set_custom_mode",
+                params: this.powerMode
+            });
+        }
+
+	}
 
     vacuumZonedIncreaseButton() {
         this.vacuumZonedCleanupRepeats++;
@@ -431,8 +539,12 @@ class XiaomiVacuumMapCard extends LitElement {
                 context.stroke();
             }
         } else if (this.mode === 3) {
-            for (let i = 0; i < this._config.zones.length; i++) {
+			context.font = "12px Arial";
+			context.textAlign = "center";
+
+			for (let i = 0; i < this._config.zones.length; i++) {
                 const zone = this._config.zones[i];
+				let first = 0;
                 for (const rect of zone) {
                     const {x, y, w, h} = this.convertVacuumToMapZone(rect[0], rect[1], rect[2], rect[3]);
                     context.beginPath();
@@ -448,6 +560,11 @@ class XiaomiVacuumMapCard extends LitElement {
                     context.rect(x, y, w, h);
                     context.fillRect(x, y, w, h);
                     context.stroke();
+
+					if ( first ) continue;
+					first = 1;
+					context.fillStyle = 'rgba(255, 255, 255, 1)';
+					context.fillText(this._config.zone_names[i][0], x+w/2, y+h/2);
                 }
             }
         }
@@ -567,16 +684,29 @@ class XiaomiVacuumMapCard extends LitElement {
         for (let i = 0; i < this.selectedZones.length; i++) {
             const selectedZone = this.selectedZones[i];
             const preselectedZone = this._config.zones[selectedZone];
+			const preselectedZoneID = this._config.zone_names[selectedZone][1];
+			zone.push(preselectedZoneID);
+			/*
             for (const rect of preselectedZone) {
                 zone.push([rect[0], rect[1], rect[2], rect[3], this.vacuumZonedCleanupRepeats])
             }
+			*/
         }
-        if (debug && this._config.debug) {
+		//zone.push(this.vacuumZonedCleanupRepeats);
+
+		if (debug && this._config.debug) {
             alert(JSON.stringify(zone));
         } else {
+			/*
             this._hass.callService(this.service_domain, this.service_method, {
                 entity_id: this._config.entity,
                 command: "app_zoned_clean",
+                params: zone
+            }).then(() => this.showToast());
+			*/
+            this._hass.callService(this.service_domain, this.service_method, {
+                entity_id: this._config.entity,
+                command: "app_segment_clean",
                 params: zone
             }).then(() => this.showToast());
         }

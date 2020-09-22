@@ -1,4 +1,11 @@
 const mode = "mode";
+const powerMode = "powerMode";
+const pmUnknown = "pmUnknown";
+const pmSoft = "pmSoft";
+const pmSilent = "pmSilent";
+const pmBalanced = "pmBalanced";
+const pmTurbo = "pmTurbo";
+const pmMax = "pmMax";
 const goToTarget = "goToTarget";
 const zonedCleanup = "zonedCleanup";
 const zones = "zones";
@@ -9,15 +16,29 @@ const confirmation = "confirmation";
 const texts = {
     "en": {
         mode: "Mode",
+        powerMode: "Power Mode",
+        pmUnknown: "Unknown",
+        pmSoft: "Soft",
+        pmSilent: "Silent",
+        pmBalanced: "Balanced",
+        pmTurbo: "Turbo",
+        pmMax: "MAX",
         goToTarget: "Go to target",
         zonedCleanup: "Zoned cleanup",
-        zones: "Zones",
+        zones: "Rooms",
         run: "Start",
         repeats: "Times:",
         confirmation: "Command sent!"
     },
     "de": {
         mode: "Modus",
+        powerMode: "Power Mode",
+        pmUnknown: "Unknown",
+        pmSoft: "Soft",
+        pmSilent: "Silent",
+        pmBalanced: "Balanced",
+        pmTurbo: "Turbo",
+        pmMax: "MAX",
         goToTarget: "Gehe zum Zielpunkt",
         zonedCleanup: "Zonenreinigung",
         zones: "Zonen",
@@ -27,6 +48,13 @@ const texts = {
     },
     "dk": {
         mode: "Mode",
+        powerMode: "Power Mode",
+        pmUnknown: "Unknown",
+        pmSoft: "Soft",
+        pmSilent: "Silent",
+        pmBalanced: "Balanced",
+        pmTurbo: "Turbo",
+        pmMax: "MAX",
         goToTarget: "Gå til punkt",
         zonedCleanup: "Zone rengøring",
         zones: "Zoner",
@@ -36,6 +64,13 @@ const texts = {
     },
     "es": {
         mode: "Modos",
+        powerMode: "Power Mode",
+        pmUnknown: "Unknown",
+        pmSoft: "Soft",
+        pmSilent: "Silent",
+        pmBalanced: "Balanced",
+        pmTurbo: "Turbo",
+        pmMax: "MAX",
         goToTarget: "Ir al objetivo",
         zonedCleanup: "Zona de limpieza",
         zones: "Zonas",
@@ -45,6 +80,13 @@ const texts = {
     },
     "fr": {
         mode: "Mode",
+        powerMode: "Power Mode",
+        pmUnknown: "Unknown",
+        pmSoft: "Soft",
+        pmSilent: "Silent",
+        pmBalanced: "Balanced",
+        pmTurbo: "Turbo",
+        pmMax: "MAX",
         goToTarget: "Aller sur la cible",
         zonedCleanup: "Nettoyage de zone",
         zones: "Zones",
@@ -54,15 +96,29 @@ const texts = {
     },
     "it": {
         mode: "Modalità",
+        powerMode: "Power Mode",
+        pmUnknown: "Sconosciuto",
+        pmSoft: "Delicato",
+        pmSilent: "Silenzioso",
+        pmBalanced: "Bilanciato",
+        pmTurbo: "Turbo",
+        pmMax: "MAX",
         goToTarget: "Raggiungi punto",
         zonedCleanup: "Pulizia zona",
-        zones: "Zone",
+        zones: "Stanze",
         run: "Avvia",
         repeats: "Volte:",
         confirmation: "Comando inviato!"
     },
     "nl": {
         mode: "Modus",
+        powerMode: "Power Mode",
+        pmUnknown: "Unknown",
+        pmSoft: "Soft",
+        pmSilent: "Silent",
+        pmBalanced: "Balanced",
+        pmTurbo: "Turbo",
+        pmMax: "MAX",
         goToTarget: "Ga naar een punt",
         zonedCleanup: "Zone reinigen",
         zones: "Zones",
@@ -72,6 +128,13 @@ const texts = {
     },
     "no": {
         mode: "Modus",
+        powerMode: "Power Mode",
+        pmUnknown: "Unknown",
+        pmSoft: "Soft",
+        pmSilent: "Silent",
+        pmBalanced: "Balanced",
+        pmTurbo: "Turbo",
+        pmMax: "MAX",
         goToTarget: "Gå til mål",
         zonedCleanup: "Sonerengjøring",
         zones: "Soner",
@@ -81,6 +144,13 @@ const texts = {
     },
     "pl": {
         mode: "Tryb",
+        powerMode: "Power Mode",
+        pmUnknown: "Unknown",
+        pmSoft: "Soft",
+        pmSilent: "Silent",
+        pmBalanced: "Balanced",
+        pmTurbo: "Turbo",
+        pmMax: "MAX",
         goToTarget: "Idź do punktu",
         zonedCleanup: "Czyszczenie strefowe",
         zones: "Strefy",
@@ -90,6 +160,13 @@ const texts = {
     },
     "ru": {
         mode: "Режим",
+        powerMode: "Power Mode",
+        pmUnknown: "Unknown",
+        pmSoft: "Soft",
+        pmSilent: "Silent",
+        pmBalanced: "Balanced",
+        pmTurbo: "Turbo",
+        pmMax: "MAX",
         goToTarget: "Движение к цели",
         zonedCleanup: "Зональная уборка",
         zones: "Зоны",
@@ -99,15 +176,29 @@ const texts = {
     },
     "se": {
         mode: "Läge",
+        powerMode: "Power Mode",
+        pmUnknown: "Unknown",
+        pmSoft: "Soft",
+        pmSilent: "Silent",
+        pmBalanced: "Balanced",
+        pmTurbo: "Turbo",
+        pmMax: "MAX",
         goToTarget: "Gå till vald destination",
         zonedCleanup: "Zon städning",
         zones: "Zoner",
         run: "Start",
         repeats: "Repetitioner:",
         confirmation: "Kommando skickat!"
-    },
+    },	
     "uk": {
         mode: "Режим",
+        powerMode: "Power Mode",
+        pmUnknown: "Unknown",
+        pmSoft: "Soft",
+        pmSilent: "Silent",
+        pmBalanced: "Balanced",
+        pmTurbo: "Turbo",
+        pmMax: "MAX",
         goToTarget: "Рух до цілі",
         zonedCleanup: "Зональне прибирання",
         zones: "Зони",
@@ -119,6 +210,13 @@ const texts = {
 
 export {
     mode,
+	powerMode,
+    pmUnknown,
+	pmSoft,
+	pmSilent,
+	pmBalanced,
+	pmTurbo,
+	pmMax,
     goToTarget,
     zonedCleanup,
     zones,
