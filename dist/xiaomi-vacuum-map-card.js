@@ -22,6 +22,14 @@ const LitElement = Object.getPrototypeOf(
 );
 const html = LitElement.prototype.html;
 
+if (typeof loadCardHelpers !== "undefined") {
+    loadCardHelpers().then(helpers => {
+        if (typeof helpers.importMoreInfoControl !== "undefined") {
+            helpers.importMoreInfoControl("light");
+        }
+    });
+}
+
 var powerModeDropdownSetup = true;
 
 class XiaomiVacuumMapCard extends LitElement {
